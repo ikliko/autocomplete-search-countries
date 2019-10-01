@@ -4,7 +4,7 @@ var RestRequester = (function () {
 
     RestRequester.prototype.get = function (url, cb) {
         this.makeRequest('GET', url, true, cb);
-    }
+    };
 
     RestRequester.prototype.makeRequest = function (method, url, async, cb) {
         if (cb && typeof cb === 'function') {
@@ -22,8 +22,8 @@ var RestRequester = (function () {
             return;
         }
 
-        throw new Error('Invalid Callback function!' + (typeof cb))
-    }
+        throw new Error('Invalid Callback function!' + (typeof cb));
+    };
 
     return new RestRequester();
-}())
+}());

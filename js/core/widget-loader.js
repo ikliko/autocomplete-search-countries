@@ -11,14 +11,13 @@ var WidgetLoader = (function () {
         this.widgets.forEach((elm) => {
             let widget = this.renderWidget(elm.dataset.widgetId);
 
-            // console.log(widget);
-            elm.innerHTML = widget;
+            elm.appendChild(widget);
         })
     };
 
     WidgetLoader.prototype.renderWidget = function (widgetId) {
         return this.parseWidgetId(widgetId).render();
-    }
+    };
 
     WidgetLoader.prototype.parseWidgetId = function (widgetId) {
         let widgetClassName = widgetId.split('-').map(widgetIdElm => ucfirst(widgetIdElm)).join('');
@@ -28,7 +27,7 @@ var WidgetLoader = (function () {
         }
 
         return null;
-    }
+    };
 
     return WidgetLoader;
 }());
