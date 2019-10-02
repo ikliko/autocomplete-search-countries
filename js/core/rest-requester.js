@@ -2,27 +2,31 @@ var RestRequester = (function () {
     function RestRequester() {
     }
 
-    RestRequester.prototype.get = function (url, cb) {
-        this.makeRequest('GET', url, true, cb);
+    /**
+     * Makes get request to given url
+     *
+     * @param url
+     * @returns {Promise<unknown>}
+     */
+    RestRequester.prototype.get = function (url) {
+        return this.makeRequest('GET', url, true);
     };
 
-    RestRequester.prototype.makeRequest = function (method, url, async, cb) {
-        if (cb && typeof cb === 'function') {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                try {
-                    cb(JSON.parse(this.response))
-                } catch (e) {
-
+    RestRequester.prototype.makeRequest = function (method, url, async) {
+        return new Promise(((resolve, reject) => {
+            const xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function (ev) {
+                if (this.status >= 200 && this.status <= 299 && this.readyState === XMLHttpRequest.DONE) {
+                    try {
+                        resolve(JSON.parse(this.responseText));
+                    } catch (e) {
+                        reject(e)
+                    }
                 }
             };
             xhttp.open(method, url, async);
             xhttp.send();
-
-            return;
-        }
-
-        throw new Error('Invalid Callback function!' + (typeof cb));
+        }));
     };
 
     return new RestRequester();

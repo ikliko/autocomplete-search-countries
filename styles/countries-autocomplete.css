@@ -1,0 +1,45 @@
+body {
+    display: flex;
+}
+
+.countries-autocomplete {
+    width: 400px;
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .countries-autocomplete-input {
+    width: 100%;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper ul.active {
+    display: block;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper ul {
+    border: 1px solid red;
+    margin: 0;
+    padding: 0;
+    height: 300px;
+    overflow: auto;
+    display: none;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper ul li {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper ul li .country-flag {
+    height: 20px;
+    border: 1px solid #000;
+    margin-right: 10px;
+}
