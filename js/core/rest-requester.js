@@ -12,6 +12,14 @@ var RestRequester = (function () {
         return this.makeRequest('GET', url, true);
     };
 
+    /**
+     * Makes requests by given method, url and even you can make async or sync requests by flag
+     *
+     * @param method {string}
+     * @param url {string}
+     * @param async {boolean}
+     * @returns {Promise<unknown>}
+     */
     RestRequester.prototype.makeRequest = function (method, url, async) {
         return new Promise(((resolve, reject) => {
             const xhttp = new XMLHttpRequest();

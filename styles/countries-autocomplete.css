@@ -35,7 +35,11 @@ body {
 .countries-autocomplete .widget-countries-autocomplete-wrapper ul li {
     display: flex;
     align-items: center;
-    margin: 10px;
+    padding: 10px;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper ul li.active {
+    background: #cfcfcf;
 }
 
 .countries-autocomplete .widget-countries-autocomplete-wrapper ul li .country-flag {

@@ -6,7 +6,7 @@ var Country = (function () {
     }
 
     return Country;
-}())
+}());
 
 var CountriesAutocomplete = (function () {
     function CountriesAutocomplete() {
@@ -109,16 +109,22 @@ var CountriesAutocomplete = (function () {
     CountriesAutocomplete.prototype.renderOptions = function (options) {
         this.optionsWrapper.innerHTML = '';
 
-        options.map(country => {
+        options.map((country, index) => {
             let option = document.createElement('li'),
                 flag = document.createElement('img'),
                 countryRepresentorWrapper = document.createElement('div');
+
+            if (!index) {
+                option.classList.add('active');
+            }
 
             flag.classList.add('country-flag');
             flag.src = country.flag;
 
             countryRepresentorWrapper.classList.add('country-representor-wrapper');
-            countryRepresentorWrapper.append(`${country.name}, ${country.capital}`);
+
+            let countryCapital = [country.name, country.capital].filter(field => field).join(', ');
+            countryRepresentorWrapper.append(`${countryCapital}`);
 
             option.append(flag);
             option.append(countryRepresentorWrapper);
@@ -148,22 +154,48 @@ var CountriesAutocomplete = (function () {
             this.optionsWrapper.classList.add('active');
         });
 
+        /**
+         * Hides select if user clicks outside input and input have no value
+         */
         countriesAutocompleteInput.addEventListener('blur', function () {
             if (!this.value) {
                 _self.optionsWrapper.classList.remove('active');
             }
         });
 
+        /**
+         * Validates input value. Filters all non alphabet chars.
+         */
         countriesAutocompleteInput.addEventListener('keypress', function (ev) {
             if ((/[^a-zA-Z]/gi).test(ev.key)) {
                 ev.preventDefault();
             }
         });
 
+        /**
+         * Searching countries on type
+         */
         countriesAutocompleteInput.addEventListener('keyup', function (ev) {
-            if (_self.inputState === this.value) {
+            if (_self.inputState !== this.value) {
                 _self.inputState = this.value;
-                _self.renderOptions(_self.searchCountries(this.value));
+
+                /**
+                 * search options in array
+                 */
+                // _self.renderOptions(_self.searchCountries(this.value));
+
+                /**
+                 * Search countries async to REST API
+                 */
+                if (this.value !== '') {
+                    _self.searchCountriesAsync(this.value).then(countries => {
+                        _self.renderOptions(countries);
+                    });
+                } else {
+                    _self.getAllCountries().then(countries => {
+                        _self.renderOptions(countries);
+                    });
+                }
             }
         });
 
@@ -193,7 +225,24 @@ var CountriesAutocomplete = (function () {
      * @returns {*[]}
      */
     CountriesAutocomplete.prototype.searchCountries = function (value) {
-        return this.allCountries.filter(country => country.name.toLowerCase().includes(value));
+        return this.allCountries.filter(country => country.name.toLowerCase().includes(value)
+            || country.capital.toLowerCase().includes(value));
+    };
+
+    /**
+     * Makes request to REST API by given string
+     *
+     * @param value
+     * @returns {Promise<Array>}
+     */
+    CountriesAutocomplete.prototype.searchCountriesAsync = function (value) {
+        return RestRequester.get(`https://restcountries.eu/rest/v2/name/${value}`).then(countries => {
+            this.allCountries = countries.map(country => new Country(country.name, country.capital, country.flag));
+
+            return this.allCountries;
+        }, error => {
+            console.error(error);
+        })
     };
 
     return CountriesAutocomplete;
