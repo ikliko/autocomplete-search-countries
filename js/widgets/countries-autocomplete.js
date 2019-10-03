@@ -102,6 +102,22 @@ var CountriesAutocomplete = (function () {
         optionsWrapper.setAttribute('data-role', 'options-container');
         let _self = this;
 
+        optionsWrapper.addEventListener('mouseover', function (ev) {
+            if (ev.target.tagName === 'LI') {
+                if (this.querySelector('.active')) {
+                    this.querySelector('.active').classList.remove('active');
+                }
+
+                let hoveredLi = ev.target.closest('li');
+                hoveredLi.classList.add('active');
+                _self.selectedCountryCode = hoveredLi.dataset['id']
+            }
+        });
+
+        optionsWrapper.addEventListener('mouseleave', () => {
+            this.selectCountryByCode(this.selectedCountryCode);
+        });
+
         optionsWrapper.addEventListener('mousedown', function (ev) {
             if (ev.target.tagName === 'UL') {
                 return;
@@ -276,19 +292,15 @@ var CountriesAutocomplete = (function () {
         countriesAutocompleteInput.classList.add('countries-autocomplete-input');
         countriesAutocompleteInput.placeholder = 'Type country name (Ex.: Bulgaria)..';
         let _self = this;
-        //
-        // countriesAutocompleteInput.addEventListener('focus', () => {
-        //     this.optionsWrapper.classList.add('active');
-        // });
 
-        // /**
-        //  * Hides select if user clicks outside input and input have no value
-        //  */
-        // countriesAutocompleteInput.addEventListener('blur', function () {
-        //     if (!this.value) {
-        //         _self.optionsWrapper.classList.remove('active');
-        //     }
-        // });
+        /**
+         * Hides select if user clicks outside input and input have no value
+         */
+        countriesAutocompleteInput.addEventListener('blur', function () {
+            if (!this.value) {
+                _self.hideAutocomplete();
+            }
+        });
 
         /**
          * Validates input value. Filters all non alphabet chars.

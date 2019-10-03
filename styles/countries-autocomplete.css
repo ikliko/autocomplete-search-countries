@@ -78,8 +78,8 @@ body {
     cursor: pointer;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li.active,
-.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li:hover {
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li.active /*,
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li:hover*/ {
     background: #808080;
 }
 
