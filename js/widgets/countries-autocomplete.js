@@ -1,12 +1,19 @@
 var Country = (function () {
-    function Country(name, capital, flag) {
+    function Country(name, capital, flag, code) {
         this.name = name;
         this.capital = capital;
         this.flag = flag;
+        this.code = code;
     }
 
     return Country;
 }());
+
+const KEYS = {
+    ARROW_UP: 'arrowup',
+    ARROW_DOWN: 'arrowdown',
+    ENTER: 'enter',
+};
 
 var CountriesAutocomplete = (function () {
     function CountriesAutocomplete() {
@@ -24,6 +31,8 @@ var CountriesAutocomplete = (function () {
          */
         this.uuid = '';
         this.generateUUID();
+
+        this.widgetWrapper = this.createWidgetWrapper();
 
         /**
          * Countries autocomplete wrapper element field
@@ -45,6 +54,30 @@ var CountriesAutocomplete = (function () {
          * @type {string}
          */
         this.inputState = '';
+
+        /**
+         * Selected country code
+         *
+         * @type {number}
+         */
+        this.selectedCountryCode = '';
+
+        /**
+         * Current country code
+         *
+         * @type {string}
+         */
+        this.userSelectedCountryCode = '';
+
+        this.selectedCountryWrapper = this.createSelectedCountryWrapper();
+    }
+
+    CountriesAutocomplete.prototype.createWidgetWrapper = function () {
+        let widgetWrapper = document.createElement('div');
+        widgetWrapper.classList.add('widget-countries-autocomplete-wrapper');
+        widgetWrapper.setAttribute('data-uuid', this.uuid);
+
+        return widgetWrapper;
     }
 
     /**
@@ -54,8 +87,7 @@ var CountriesAutocomplete = (function () {
      */
     CountriesAutocomplete.prototype.createCountriesAutocompleteWrapper = function () {
         let countriesAutocompleteWrapper = document.createElement('div');
-        countriesAutocompleteWrapper.classList.add('widget-countries-autocomplete-wrapper');
-        countriesAutocompleteWrapper.setAttribute('data-uuid', this.uuid);
+        countriesAutocompleteWrapper.classList.add('autocomplete-wrapper');
 
         return countriesAutocompleteWrapper;
     };
@@ -68,8 +100,71 @@ var CountriesAutocomplete = (function () {
     CountriesAutocomplete.prototype.createOptionsWrapper = function () {
         let optionsWrapper = document.createElement('ul');
         optionsWrapper.setAttribute('data-role', 'options-container');
+        let _self = this;
+
+        optionsWrapper.addEventListener('mousedown', function (ev) {
+            if (ev.target.tagName === 'UL') {
+                return;
+            }
+
+            if (this.querySelector('.active')) {
+                this.querySelector('.active').classList.remove('active');
+            }
+
+            ev.target.closest('li').classList.add('active');
+            _self.userSelectedCountryCode = ev.target.closest('li').dataset['id'];
+            _self.renderSelectedOption();
+            _self.toggleAutocomplete();
+        });
 
         return optionsWrapper;
+    };
+
+    CountriesAutocomplete.prototype.createSelectedCountryWrapper = function () {
+        let div = document.createElement('div'),
+            spanText = document.createElement('span');
+        div.setAttribute('data-role', 'selected-value-wrapper');
+        spanText.append('Select country');
+        div.append(spanText);
+
+        div.addEventListener('mousedown', () => {
+            this.toggleAutocomplete();
+        });
+
+        return div;
+    };
+
+    CountriesAutocomplete.prototype.showAutocomplete = function () {
+        this.countriesAutocompleteWrapper.style.display = 'flex';
+        this.focusInput();
+    };
+
+    CountriesAutocomplete.prototype.hideAutocomplete = function () {
+        this.countriesAutocompleteWrapper.style.display = 'none';
+    };
+
+    CountriesAutocomplete.prototype.toggleAutocomplete = function () {
+        if (this.countriesAutocompleteWrapper.style.display === 'flex') {
+            this.hideAutocomplete();
+        } else {
+            this.showAutocomplete();
+        }
+    };
+
+    CountriesAutocomplete.prototype.focusInput = function () {
+        setTimeout(() => {
+            this.countriesAutocompleteWrapper.querySelector('input').focus()
+        })
+    }
+
+    CountriesAutocomplete.prototype.renderSelectedOption = function () {
+        let countryElement = this.createOptionElement(this.getCurrentCountry(), false).innerHTML;
+        this.selectedCountryWrapper.innerHTML = '';
+        this.selectedCountryWrapper.innerHTML = countryElement;
+    };
+
+    CountriesAutocomplete.prototype.getCurrentCountry = function () {
+        return this.allCountries.find(country => country.code === this.userSelectedCountryCode);
     };
 
     /**
@@ -81,6 +176,29 @@ var CountriesAutocomplete = (function () {
         );
     };
 
+    CountriesAutocomplete.prototype.selectCountryByCode = function (code) {
+        if (this.optionsWrapper.querySelector('.active')) {
+            this.optionsWrapper.querySelector('.active').classList.remove('active');
+        }
+
+        setTimeout(() => {
+            this.optionsWrapper.querySelector(`[data-id="${code}"]`).classList.add('active');
+            let pos = this.optionsWrapper.querySelector(`[data-id="${code}"]`).offsetTop;
+
+            if (pos > 200) {
+                this.optionsWrapper.scrollTo({
+                    top: pos - 150,
+                    behavior: "smooth"
+                });
+            } else {
+                this.optionsWrapper.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }
+        })
+    };
+
     /**
      * This function is important for every widget. It's called by widget loader
      * and returns promise of widget wrapper element.
@@ -89,12 +207,14 @@ var CountriesAutocomplete = (function () {
      */
     CountriesAutocomplete.prototype.render = function () {
         return new Promise((resolve, reject) => {
+            this.widgetWrapper.appendChild(this.selectedCountryWrapper);
             this.countriesAutocompleteWrapper.appendChild(this.renderInput());
 
             this.getAllCountries().then(countries => {
                 let options = countries.slice();
 
-                resolve(this.countriesAutocompleteWrapper);
+                this.widgetWrapper.append(this.countriesAutocompleteWrapper);
+                resolve(this.widgetWrapper);
 
                 this.renderOptions(options);
             })
@@ -110,26 +230,7 @@ var CountriesAutocomplete = (function () {
         this.optionsWrapper.innerHTML = '';
 
         options.map((country, index) => {
-            let option = document.createElement('li'),
-                flag = document.createElement('img'),
-                countryRepresentorWrapper = document.createElement('div');
-
-            if (!index) {
-                option.classList.add('active');
-            }
-
-            flag.classList.add('country-flag');
-            flag.src = country.flag;
-
-            countryRepresentorWrapper.classList.add('country-representor-wrapper');
-
-            let countryCapital = [country.name, country.capital].filter(field => field).join(', ');
-            countryRepresentorWrapper.append(`${countryCapital}`);
-
-            option.append(flag);
-            option.append(countryRepresentorWrapper);
-
-            this.optionsWrapper.append(option);
+            this.optionsWrapper.append(this.createOptionElement(country, !index));
         });
 
         if (!options.length) {
@@ -137,6 +238,32 @@ var CountriesAutocomplete = (function () {
         }
 
         this.countriesAutocompleteWrapper.append(this.optionsWrapper);
+    };
+
+    CountriesAutocomplete.prototype.createOptionElement = function (country, active) {
+        let option = document.createElement('li'),
+            flag = document.createElement('img'),
+            countryRepresentorWrapper = document.createElement('div');
+
+        option.setAttribute('data-id', country.code);
+
+        if (active) {
+            option.classList.add('active');
+            this.selectedCountryCode = country.code;
+        }
+
+        flag.classList.add('country-flag');
+        flag.src = country.flag;
+
+        countryRepresentorWrapper.classList.add('country-representor-wrapper');
+
+        let countryCapital = [country.name, country.capital].filter(field => field).join(', ');
+        countryRepresentorWrapper.append(`${countryCapital}`);
+
+        option.append(flag);
+        option.append(countryRepresentorWrapper);
+
+        return option;
     };
 
     /**
@@ -147,21 +274,21 @@ var CountriesAutocomplete = (function () {
     CountriesAutocomplete.prototype.renderInput = function () {
         let countriesAutocompleteInput = document.createElement('input');
         countriesAutocompleteInput.classList.add('countries-autocomplete-input');
-        countriesAutocompleteInput.placeholder = 'Search country..';
+        countriesAutocompleteInput.placeholder = 'Type country name (Ex.: Bulgaria)..';
         let _self = this;
+        //
+        // countriesAutocompleteInput.addEventListener('focus', () => {
+        //     this.optionsWrapper.classList.add('active');
+        // });
 
-        countriesAutocompleteInput.addEventListener('focus', () => {
-            this.optionsWrapper.classList.add('active');
-        });
-
-        /**
-         * Hides select if user clicks outside input and input have no value
-         */
-        countriesAutocompleteInput.addEventListener('blur', function () {
-            if (!this.value) {
-                _self.optionsWrapper.classList.remove('active');
-            }
-        });
+        // /**
+        //  * Hides select if user clicks outside input and input have no value
+        //  */
+        // countriesAutocompleteInput.addEventListener('blur', function () {
+        //     if (!this.value) {
+        //         _self.optionsWrapper.classList.remove('active');
+        //     }
+        // });
 
         /**
          * Validates input value. Filters all non alphabet chars.
@@ -170,12 +297,14 @@ var CountriesAutocomplete = (function () {
             if ((/[^a-zA-Z]/gi).test(ev.key)) {
                 ev.preventDefault();
             }
-        });
+        }, true);
 
         /**
          * Searching countries on type
          */
         countriesAutocompleteInput.addEventListener('keyup', function (ev) {
+            _self.checkCommandKey(ev.key.toLowerCase());
+
             if (_self.inputState !== this.value) {
                 _self.inputState = this.value;
 
@@ -202,6 +331,46 @@ var CountriesAutocomplete = (function () {
         return countriesAutocompleteInput;
     };
 
+    CountriesAutocomplete.prototype.checkCommandKey = function (key) {
+        switch (key.toLowerCase()) {
+            case KEYS.ARROW_UP:
+                this.moveSelectUp();
+                break;
+            case KEYS.ARROW_DOWN:
+                this.moveSelectDown();
+                break;
+            case KEYS.ENTER:
+                this.userSelectedCountryCode = this.selectedCountryCode;
+                this.renderSelectedOption();
+                this.toggleAutocomplete();
+                break;
+        }
+    };
+
+    CountriesAutocomplete.prototype.moveSelectUp = function () {
+        let currentIndex = this.allCountries.findIndex(country => country.code === this.selectedCountryCode),
+            nextIndex = currentIndex - 1;
+
+        if (nextIndex === -1) {
+            nextIndex = this.allCountries.length - 1;
+        }
+
+        this.selectedCountryCode = this.allCountries[nextIndex].code;
+        this.selectCountryByCode(this.selectedCountryCode);
+    };
+
+    CountriesAutocomplete.prototype.moveSelectDown = function () {
+        let currentIndex = this.allCountries.findIndex(country => country.code === this.selectedCountryCode),
+            nextIndex = currentIndex + 1;
+
+        if (nextIndex === this.allCountries.length) {
+            nextIndex = 0;
+        }
+
+        this.selectedCountryCode = this.allCountries[nextIndex].code;
+        this.selectCountryByCode(this.selectedCountryCode);
+    };
+
     /**
      * Makes REST API request and maps data to Country model
      *
@@ -209,7 +378,7 @@ var CountriesAutocomplete = (function () {
      */
     CountriesAutocomplete.prototype.getAllCountries = function () {
         return RestRequester.get('https://restcountries.eu/rest/v2/all').then(countries => {
-            this.allCountries = countries.map(country => new Country(country.name, country.capital, country.flag));
+            this.allCountries = countries.map(country => new Country(country.name, country.capital, country.flag, country.alpha2Code));
 
             return this.allCountries;
         }, error => {
@@ -237,7 +406,7 @@ var CountriesAutocomplete = (function () {
      */
     CountriesAutocomplete.prototype.searchCountriesAsync = function (value) {
         return RestRequester.get(`https://restcountries.eu/rest/v2/name/${value}`).then(countries => {
-            this.allCountries = countries.map(country => new Country(country.name, country.capital, country.flag));
+            this.allCountries = countries.map(country => new Country(country.name, country.capital, country.flag, country.alpha2Code));
 
             return this.allCountries;
         }, error => {

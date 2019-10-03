@@ -4,45 +4,87 @@ body {
 
 .countries-autocomplete {
     width: 400px;
-    margin: 0;
+    margin: 0 40px 0 0;
     padding: 0;
     display: inline-block;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper {
+.countries-autocomplete .autocomplete-wrapper {
     width: 100%;
     margin: 0;
     padding: 0;
+    position: relative;
+    display: none;
+    flex-direction: column;
+    border: 1px solid #000000;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper .countries-autocomplete-input {
-    width: 100%;
+.countries-autocomplete div[data-role="selected-value-wrapper"] {
+    height: 45px;
+    border: 1px solid #000000;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    position: relative;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper ul.active {
+.countries-autocomplete div[data-role="selected-value-wrapper"]:before {
+    position: absolute;
+    right: 10px;
+    content: '▼';
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper .countries-autocomplete-input {
+    line-height: 20px;
+    padding-left: 5px;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul.active {
     display: block;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper ul {
-    border: 1px solid red;
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul {
     margin: 0;
     padding: 0;
     height: 300px;
     overflow: auto;
-    display: none;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper ul li {
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul::-webkit-scrollbar {
+    width: 5px;
+    background: #EAE6DA;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul::-webkit-scrollbar-thumb {
+    background: #5A3E36;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper [data-role="selected-value-wrapper"] {
+    display: flex;
+    position: absolute;
+    top: 0;
+}
+
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper [data-role="selected-value-wrapper"],
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li {
     display: flex;
     align-items: center;
     padding: 10px;
+    cursor: pointer;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper ul li.active {
-    background: #cfcfcf;
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li.active,
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li:hover {
+    background: #808080;
 }
 
-.countries-autocomplete .widget-countries-autocomplete-wrapper ul li .country-flag {
+.countries-autocomplete .widget-countries-autocomplete-wrapper [data-role="selected-value-wrapper"] .country-flag,
+.countries-autocomplete .widget-countries-autocomplete-wrapper .autocomplete-wrapper ul li .country-flag {
     height: 20px;
     border: 1px solid #000;
     margin-right: 10px;
